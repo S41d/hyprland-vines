@@ -1,0 +1,96 @@
+# Compiled plugin
+*.so
+*.o
+*.a
+
+# Build artifacts
+borders-plus-plus.so
+build/
+_build/
+*.cmake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+DartConfiguration.tcl
+Makefile.bak
+Testing/
+
+# Compilation database
+compile_commands.json
+
+# Meson build
+meson-*/
+.ninja_deps
+.ninja_log
+build.ninja
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+*.bak
+.DS_Store
+.cache/
+
+# Backup files
+*~
+*.orig
+*.rej
+
+# Package manager
+*.rpm
+*.deb
+*.tar.gz
+*.tar.xz
+*.zip
+
+# Logs
+*.log
+
+# Hyprland submodule builds (if present)
+Hyprland/build/
+Hyprland/_build/
+Hyprland/.git/
+
+# libxkbcommon builds
+libxkbcommon/build/
+libxkbcommon/.git/
+
+# Temporary test files
+.test-*
+test-output/
+
+# Core dumps
+core
+core.*
+
+# Generated documentation
+docs/_build/
+docs/.buildinfo
+
+# Python cache (if using any Python scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local configuration
+.env
+.env.local
+local.conf
+
+# System files
+.directory
+Thumbs.db

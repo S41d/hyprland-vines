@@ -1,0 +1,11 @@
+[repository]
+name = "hyprland-plugins"
+authors = ["Vaxry"]
+
+[borders-plus-plus]
+description = "A plugin to add more borders to windows."
+authors = ["Vaxry"]
+output = "borders-plus-plus/borders-plus-plus.so"
+build = [
+    "make -C borders-plus-plus all",
+]
