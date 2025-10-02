@@ -277,57 +277,91 @@ void CBordersPlusPlus::drawVines(PHLMONITOR pMonitor, const CBox& box, const flo
   // Update animation time
   m_fVineAnimationTime += 0.016f; // Assuming ~60fps
   
-  // Helper lambda to draw a leaf shape at a position
-  auto drawLeaf = [&](Vector2D pos, float size, const CHyprColor& leafColor, float rotation) {
-    // Draw leaf as an oval/ellipse using two overlapping rounded rectangles
-    // This creates a more natural leaf shape than a circle
+  // Helper lambda to draw a more realistic leaf shape at a position
+  auto drawLeaf = [&](Vector2D pos, float size, const CHyprColor& leafColor, float angleOffset) {
+    // Create a more natural leaf shape using multiple rounded rectangles
+    // This simulates a teardrop/almond shape common in ivy and vine leaves
     
-    // Main leaf body (wider, shorter)
-    CBox leafBody = {
-      pos.x - size * 0.6f,
-      pos.y - size * 0.3f,
-      static_cast<double>(size * 1.2f),
-      static_cast<double>(size * 0.6f)
-    };
-    g_pHyprOpenGL->renderRect(leafBody, leafColor, {.round = sc<int>(size * 0.3f)});
+    // Calculate slight rotation for variety
+    float angle = angleOffset + std::sin(m_fVineAnimationTime * 0.1f) * 0.1f;
     
-    // Leaf tip (smaller, creates pointed end)
-    CBox leafTip = {
-      pos.x + size * 0.3f,
-      pos.y - size * 0.25f,
-      static_cast<double>(size * 0.5f),
+    // Base of leaf (wider, rounded bottom)
+    CBox leafBase = {
+      pos.x - size * 0.4f,
+      pos.y - size * 0.2f,
+      static_cast<double>(size * 0.8f),
       static_cast<double>(size * 0.5f)
     };
-    g_pHyprOpenGL->renderRect(leafTip, leafColor, {.round = sc<int>(size * 0.25f)});
+    g_pHyprOpenGL->renderRect(leafBase, leafColor, {.round = sc<int>(size * 0.4f)});
+    
+    // Middle section (main body)
+    CBox leafMiddle = {
+      pos.x - size * 0.35f,
+      pos.y - size * 0.5f,
+      static_cast<double>(size * 0.7f),
+      static_cast<double>(size * 0.7f)
+    };
+    g_pHyprOpenGL->renderRect(leafMiddle, leafColor, {.round = sc<int>(size * 0.25f)});
+    
+    // Tip (pointed top)
+    CBox leafTip = {
+      pos.x - size * 0.2f,
+      pos.y - size * 0.75f,
+      static_cast<double>(size * 0.4f),
+      static_cast<double>(size * 0.5f)
+    };
+    g_pHyprOpenGL->renderRect(leafTip, leafColor, {.round = sc<int>(size * 0.2f)});
+    
+    // Add slight stem detail at base
+    CBox stem = {
+      pos.x - size * 0.08f,
+      pos.y + size * 0.1f,
+      static_cast<double>(size * 0.16f),
+      static_cast<double>(size * 0.25f)
+    };
+    CHyprColor stemColor = leafColor;
+    stemColor.r *= 0.7f;
+    stemColor.g *= 0.7f;
+    stemColor.b *= 0.7f;
+    g_pHyprOpenGL->renderRect(stem, stemColor, {.round = sc<int>(size * 0.08f)});
   };
   
   // Draw the vines
   for (const auto& vinePath : m_vVinePaths) {
     if (vinePath.size() < 2) continue;
     
-    // Draw the main vine stem using overlapping leaves for natural appearance
+    // Draw the main vine stem using small overlapping circles for smooth lines
     for (size_t i = 0; i < vinePath.size(); ++i) {
       Vector2D p = vinePath[i];
       
-      // Draw a small leaf at each point - when overlapped, creates organic vine lines
-      float leafSize = static_cast<float>(thickness) * 1.2f;
+      // Draw smooth stem using circles (not leaves for the main line)
+      float stemSize = static_cast<float>(thickness) * 0.8f;
+      CBox stemCircle = {
+        p.x - stemSize / 2.0f,
+        p.y - stemSize / 2.0f,
+        static_cast<double>(stemSize),
+        static_cast<double>(stemSize)
+      };
       
       CHyprColor stemColor = color;
       stemColor.a = a;
+      // Darken stem slightly
+      stemColor.r *= 0.8f;
+      stemColor.g *= 0.9f;
+      stemColor.b *= 0.8f;
       
-      // Draw leaf shape instead of circle
-      drawLeaf(p, leafSize, stemColor, 0.0f);
+      g_pHyprOpenGL->renderRect(stemCircle, stemColor, {.round = sc<int>(stemSize / 2)});
       
-      // For thicker vines, draw additional connecting leaves between points
+      // For thicker vines, draw additional connecting segments between points
       if (i > 0) {
         Vector2D p1 = vinePath[i - 1];
         Vector2D p2 = vinePath[i];
         
-        // Draw interpolated leaves between points for extra coverage
+        // Draw interpolated circles between points for smooth stems
         float dx = p2.x - p1.x;
         float dy = p2.y - p1.y;
         float distance = std::sqrt(dx * dx + dy * dy);
-        int steps = std::max(1, static_cast<int>(distance / (thickness * 0.6f)));
+        int steps = std::max(1, static_cast<int>(distance / (thickness * 0.4f)));
         
         for (int step = 1; step < steps; ++step) {
           float t = static_cast<float>(step) / steps;
@@ -336,36 +370,52 @@ void CBordersPlusPlus::drawVines(PHLMONITOR pMonitor, const CBox& box, const flo
             p1.y + dy * t
           };
           
-          drawLeaf(interpPoint, leafSize, stemColor, 0.0f);
+          CBox interpCircle = {
+            interpPoint.x - stemSize / 2.0f,
+            interpPoint.y - stemSize / 2.0f,
+            static_cast<double>(stemSize),
+            static_cast<double>(stemSize)
+          };
+          
+          g_pHyprOpenGL->renderRect(interpCircle, stemColor, {.round = sc<int>(stemSize / 2)});
         }
       }
     }
     
     // Draw larger decorative leaves at intervals
-    for (size_t i = 0; i < vinePath.size(); i += 8) {  // Less frequent for accent leaves
-      float decorativeLeafSize = thickness * 3.0f;
+    for (size_t i = 0; i < vinePath.size(); i += 10) {  // Less frequent, more impactful
+      float decorativeLeafSize = thickness * 4.0f;
       
       // Calculate direction for leaf orientation
-      Vector2D direction = {0, 0};
+      Vector2D direction = {1, 0};
       if (i > 0 && i < vinePath.size() - 1) {
         direction.x = vinePath[i + 1].x - vinePath[i - 1].x;
         direction.y = vinePath[i + 1].y - vinePath[i - 1].y;
+        float len = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+        if (len > 0.01f) {
+          direction.x /= len;
+          direction.y /= len;
+        }
       }
       
-      // Offset leaf slightly perpendicular to vine direction
-      float perpX = -direction.y * 0.3f;
-      float perpY = direction.x * 0.3f;
+      // Offset leaf perpendicular to vine direction (alternating sides)
+      float side = (i / 10) % 2 == 0 ? 1.0f : -1.0f;
+      float perpX = -direction.y * side * decorativeLeafSize * 0.5f;
+      float perpY = direction.x * side * decorativeLeafSize * 0.5f;
       
       Vector2D leafPos = {
         vinePath[i].x + perpX,
         vinePath[i].y + perpY
       };
       
-      // Make decorative leaves slightly transparent and larger
+      // Make decorative leaves slightly transparent and vibrant
       CHyprColor decorativeColor = color;
-      decorativeColor.a = a * 0.7f;
+      decorativeColor.a = a * 0.8f;
       
-      drawLeaf(leafPos, decorativeLeafSize, decorativeColor, 0.0f);
+      // Add angle variation for natural look
+      float angleVariation = std::sin(i * 0.5f + m_fVineAnimationTime * 0.2f) * 0.3f;
+      
+      drawLeaf(leafPos, decorativeLeafSize, decorativeColor, angleVariation);
     }
   }
 }
