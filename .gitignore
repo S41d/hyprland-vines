@@ -61,13 +61,8 @@ build.ninja
 *.log
 
 # Hyprland submodule builds (if present)
-Hyprland/build/
-Hyprland/_build/
-Hyprland/.git/
-
-# libxkbcommon builds
-libxkbcommon/build/
-libxkbcommon/.git/
+Hyprland/
+libxkbcommon/
 
 # Temporary test files
 .test-*
