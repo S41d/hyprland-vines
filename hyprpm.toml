@@ -1,11 +1,11 @@
 [repository]
-name = "hyprland-plugins"
-authors = ["Vaxry"]
+name = "hyprland-vines"
+authors = ["s4id"]
 
-[borders-plus-plus]
-description = "A plugin to add more borders to windows."
-authors = ["Vaxry"]
-output = "borders-plus-plus/borders-plus-plus.so"
+[hyprland-vines]
+description = "A Hyprland plugin that adds decorative vines with time-based growth around windows. Vines start small at midnight, grow throughout the day, and turn orange after 5 PM."
+authors = ["s4id"]
+output = "borders-plus-plus.so"
 build = [
-    "make -C borders-plus-plus all",
+    "make all",
 ]
