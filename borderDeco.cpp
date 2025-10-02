@@ -192,6 +192,21 @@ void CBordersPlusPlus::drawVines(PHLMONITOR pMonitor, const CBox& box, const flo
   // Get current growth progress
   float growthProgress = getVineGrowthProgress();
   
+  // Check for growth changes periodically and request redraw
+  static auto s_lastCheckTime = std::chrono::system_clock::now();
+  auto currentTime = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(currentTime - s_lastCheckTime).count();
+  
+  // Check every 30 seconds for growth changes
+  if (elapsed >= 30) {
+    if (std::abs(growthProgress - m_fLastGrowthProgress) > 0.005f) {
+      // Growth has changed - request a redraw
+      m_bVinePathsGenerated = false;
+      damageEntire();
+    }
+    s_lastCheckTime = currentTime;
+  }
+  
   // Regenerate vines if growth progress changed significantly (every ~1% or 10 minutes)
   if (!m_bVinePathsGenerated || m_vVinePaths.empty() || 
       std::abs(growthProgress - m_fLastGrowthProgress) > 0.01f) {
@@ -563,6 +578,18 @@ void CBordersPlusPlus::drawPass(PHLMONITOR pMonitor, const float &a) {
   if (fullThickness != m_fLastThickness) {
     m_fLastThickness = fullThickness;
     g_pDecorationPositioner->repositionDeco(this);
+  }
+  
+  // Schedule periodic redraws to check for vine growth updates
+  // This ensures vines update even without window focus changes
+  static auto s_lastScheduledDamage = std::chrono::system_clock::now();
+  auto now = std::chrono::system_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - s_lastScheduledDamage).count();
+  
+  // Request redraw every 30 seconds to check for growth changes
+  if (elapsed >= 30) {
+    damageEntire();
+    s_lastScheduledDamage = now;
   }
 }
 
