@@ -281,46 +281,53 @@ void CBordersPlusPlus::drawVines(PHLMONITOR pMonitor, const CBox& box, const flo
   for (const auto& vinePath : m_vVinePaths) {
     if (vinePath.size() < 2) continue;
     
-    // Draw the main vine stem with smooth connections
-    for (size_t i = 0; i < vinePath.size() - 1; ++i) {
-      Vector2D p1 = vinePath[i];
-      Vector2D p2 = vinePath[i + 1];
+    // Draw the main vine stem using overlapping circles for smooth appearance
+    for (size_t i = 0; i < vinePath.size(); ++i) {
+      Vector2D p = vinePath[i];
       
-      // Calculate center point and dimensions
-      float centerX = (p1.x + p2.x) / 2.0f;
-      float centerY = (p1.y + p2.y) / 2.0f;
-      float dx = p2.x - p1.x;
-      float dy = p2.y - p1.y;
-      float segmentLength = std::sqrt(dx * dx + dy * dy);
-      
-      // Create overlapping rounded rectangles for smooth appearance
-      CBox lineBox = {
-        centerX - segmentLength / 2.0f - thickness / 2.0f,
-        centerY - thickness / 2.0f,
-        segmentLength + static_cast<double>(thickness),
-        static_cast<double>(thickness)
+      // Draw a circle at each point - when overlapped, creates smooth lines
+      float circleSize = static_cast<float>(thickness);
+      CBox circleBox = {
+        p.x - circleSize / 2.0f,
+        p.y - circleSize / 2.0f,
+        static_cast<double>(circleSize),
+        static_cast<double>(circleSize)
       };
       
-      if (segmentLength > 0.1f) {
-        CHyprColor lineColor = color;
-        lineColor.a = a;
-        // Use rounded rectangles for smoother appearance
-        g_pHyprOpenGL->renderRect(lineBox, lineColor, {.round = thickness / 2});
+      CHyprColor lineColor = color;
+      lineColor.a = a;
+      // Fully rounded (circle) for smooth line appearance
+      g_pHyprOpenGL->renderRect(circleBox, lineColor, {.round = sc<int>(circleSize / 2)});
+      
+      // For thicker vines, draw additional connecting segments between points
+      if (i > 0 && thickness > 2) {
+        Vector2D p1 = vinePath[i - 1];
+        Vector2D p2 = vinePath[i];
+        
+        // Draw interpolated circles between points for extra smoothness
+        float dx = p2.x - p1.x;
+        float dy = p2.y - p1.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
+        int steps = std::max(1, static_cast<int>(distance / (thickness * 0.5f)));
+        
+        for (int step = 1; step < steps; ++step) {
+          float t = static_cast<float>(step) / steps;
+          Vector2D interpPoint = {
+            p1.x + dx * t,
+            p1.y + dy * t
+          };
+          
+          CBox interpBox = {
+            interpPoint.x - circleSize / 2.0f,
+            interpPoint.y - circleSize / 2.0f,
+            static_cast<double>(circleSize),
+            static_cast<double>(circleSize)
+          };
+          
+          g_pHyprOpenGL->renderRect(interpBox, lineColor, {.round = sc<int>(circleSize / 2)});
+        }
       }
-      
-      // Draw circular joints at each point for smooth connections
-      CBox jointBox = {
-        p1.x - thickness / 2.0f,
-        p1.y - thickness / 2.0f,
-        static_cast<double>(thickness),
-        static_cast<double>(thickness)
-      };
-      CHyprColor jointColor = color;
-      jointColor.a = a;
-      g_pHyprOpenGL->renderRect(jointBox, jointColor, {.round = thickness / 2});
-    }
-    
-    // Draw leaves at intervals
+    }    // Draw leaves at intervals
     for (size_t i = 0; i < vinePath.size(); i += 5) {  // Reduced frequency for less clutter
       float leafSize = thickness * 2.0f;
       CBox leafBox = {
