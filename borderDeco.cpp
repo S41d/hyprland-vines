@@ -277,53 +277,32 @@ void CBordersPlusPlus::drawVines(PHLMONITOR pMonitor, const CBox& box, const flo
   // Update animation time
   m_fVineAnimationTime += 0.016f; // Assuming ~60fps
   
-  // Helper lambda to draw a more realistic leaf shape at a position
+  // Helper lambda to draw a simple, stylized leaf shape
   auto drawLeaf = [&](Vector2D pos, float size, const CHyprColor& leafColor, float angleOffset) {
-    // Create a more natural leaf shape using multiple rounded rectangles
-    // This simulates a teardrop/almond shape common in ivy and vine leaves
+    // Simplified heart/teardrop leaf shape - clean and recognizable
     
-    // Calculate slight rotation for variety
-    float angle = angleOffset + std::sin(m_fVineAnimationTime * 0.1f) * 0.1f;
-    
-    // Base of leaf (wider, rounded bottom)
-    CBox leafBase = {
-      pos.x - size * 0.4f,
-      pos.y - size * 0.2f,
-      static_cast<double>(size * 0.8f),
-      static_cast<double>(size * 0.5f)
+    // Main leaf body - single rounded rectangle with high rounding for organic shape
+    CBox leafBody = {
+      pos.x - size * 0.45f,
+      pos.y - size * 0.55f,
+      static_cast<double>(size * 0.9f),
+      static_cast<double>(size * 1.1f)
     };
-    g_pHyprOpenGL->renderRect(leafBase, leafColor, {.round = sc<int>(size * 0.4f)});
+    // Heavy rounding creates teardrop shape
+    g_pHyprOpenGL->renderRect(leafBody, leafColor, {.round = sc<int>(size * 0.45f)});
     
-    // Middle section (main body)
-    CBox leafMiddle = {
-      pos.x - size * 0.35f,
-      pos.y - size * 0.5f,
-      static_cast<double>(size * 0.7f),
-      static_cast<double>(size * 0.7f)
-    };
-    g_pHyprOpenGL->renderRect(leafMiddle, leafColor, {.round = sc<int>(size * 0.25f)});
-    
-    // Tip (pointed top)
-    CBox leafTip = {
-      pos.x - size * 0.2f,
-      pos.y - size * 0.75f,
-      static_cast<double>(size * 0.4f),
-      static_cast<double>(size * 0.5f)
-    };
-    g_pHyprOpenGL->renderRect(leafTip, leafColor, {.round = sc<int>(size * 0.2f)});
-    
-    // Add slight stem detail at base
+    // Small stem at base for detail
     CBox stem = {
-      pos.x - size * 0.08f,
-      pos.y + size * 0.1f,
-      static_cast<double>(size * 0.16f),
-      static_cast<double>(size * 0.25f)
+      pos.x - size * 0.1f,
+      pos.y + size * 0.4f,
+      static_cast<double>(size * 0.2f),
+      static_cast<double>(size * 0.3f)
     };
     CHyprColor stemColor = leafColor;
-    stemColor.r *= 0.7f;
-    stemColor.g *= 0.7f;
-    stemColor.b *= 0.7f;
-    g_pHyprOpenGL->renderRect(stem, stemColor, {.round = sc<int>(size * 0.08f)});
+    stemColor.r *= 0.75f;
+    stemColor.g *= 0.85f;
+    stemColor.b *= 0.75f;
+    g_pHyprOpenGL->renderRect(stem, stemColor, {.round = sc<int>(size * 0.1f)});
   };
   
   // Draw the vines
